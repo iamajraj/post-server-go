@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -48,23 +51,42 @@ func main() {
 		})
 	})
 
+	// create post
+	r.POST("/posts", func(ctx *gin.Context) {
+		body, err := io.ReadAll(ctx.Request.Body)
+
+		if err != nil {
+			SendError(500, "Please provide the correct data", ctx)
+			return
+		}
+
+		var post Post
+		if err := json.Unmarshal(body, &post); err != nil {
+			SendError(500, "Failed to parse the body", ctx)
+			return
+		}
+
+		validate := validator.New()
+		if err := validate.Struct(post); err != nil {
+			SendError(400, "Please provide the required field", ctx)
+			return
+		}
+
+		db.Create(&post)
+		ctx.JSON(201, gin.H{
+			"message": "Successfully post has been created",
+		})
+	})
+
 	log.Default().Println("Starting the server :8000")
 	if err := r.Run("localhost:8000"); err != nil {
 		log.Fatalf("Error running the server: %s", err.Error())
 	}
-	// db.Migrator().DropTable(&Post{})
-	// db.Migrator().CreateTable(&Post{})
 
-	// post := Post{
-	// 	Title:  "A new post",
-	// 	Author: "raajz",
-	// }
+}
 
-	// db.Create(&post)
-
-	// updating the post published
-	// var firstPost Post
-	// db.First(&firstPost).Update("Published", true)
-	// validate := validator.New()
-
+func SendError(code int, message string, ctx *gin.Context) {
+	ctx.JSON(code, gin.H{
+		"message": message,
+	})
 }
