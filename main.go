@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -9,12 +10,12 @@ import (
 )
 
 type Post struct {
-	ID        uint `gorm:"primarykey, autoIncrement"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Title     string
-	Published bool
-	Author    string
+	ID        uint      `gorm:"primarykey, autoIncrement" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Title     string    `gorm:"not null" json:"title"`
+	Published bool      `gorm:"not null,default:false" json:"published"`
+	Author    string    `gorm:"not null" json:"author"`
 }
 
 func main() {
@@ -27,5 +28,22 @@ func main() {
 	}
 
 	db.AutoMigrate(&Post{})
+	// db.Migrator().DropTable(&Post{})
+	// db.Migrator().CreateTable(&Post{})
 
+	// post := Post{
+	// 	Title:  "A new post",
+	// 	Author: "raajz",
+	// }
+
+	// db.Create(&post)
+
+	var posts []Post
+	db.Find(&posts)
+
+	for _, post := range posts {
+		fmt.Printf("Title: %s\n", post.Title)
+		fmt.Printf("Published: %t\n", post.Published)
+		fmt.Printf("Author: %s\n", post.Author)
+	}
 }
