@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -13,9 +13,9 @@ type Post struct {
 	ID        uint      `gorm:"primarykey, autoIncrement" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	Title     string    `gorm:"not null" json:"title"`
+	Title     string    `gorm:"not null" json:"title" validate:"required"`
 	Published bool      `gorm:"not null,default:false" json:"published"`
-	Author    string    `gorm:"not null" json:"author"`
+	Author    string    `gorm:"not null" json:"author" validate:"required"`
 }
 
 func main() {
@@ -28,6 +28,16 @@ func main() {
 	}
 
 	db.AutoMigrate(&Post{})
+
+	r := gin.Default()
+
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "Ok",
+		})
+	})
+
+	r.Run(":8000")
 	// db.Migrator().DropTable(&Post{})
 	// db.Migrator().CreateTable(&Post{})
 
@@ -38,12 +48,17 @@ func main() {
 
 	// db.Create(&post)
 
-	var posts []Post
-	db.Find(&posts)
+	// updating the post published
+	// var firstPost Post
+	// db.First(&firstPost).Update("Published", true)
+	// validate := validator.New()
 
-	for _, post := range posts {
-		fmt.Printf("Title: %s\n", post.Title)
-		fmt.Printf("Published: %t\n", post.Published)
-		fmt.Printf("Author: %s\n", post.Author)
-	}
+	// var posts []Post
+	// db.Find(&posts)
+
+	// for _, post := range posts {
+	// 	fmt.Printf("Title: %s\n", post.Title)
+	// 	fmt.Printf("Published: %t\n", post.Published)
+	// 	fmt.Printf("Author: %s\n", post.Author)
+	// }
 }
