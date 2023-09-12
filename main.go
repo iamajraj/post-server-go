@@ -33,11 +33,25 @@ func main() {
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "Ok",
+			"api": "v1",
 		})
 	})
 
-	r.Run(":8000")
+	// get all the posts
+	r.GET("/posts", func(c *gin.Context) {
+
+		var posts []Post
+		db.Find(&posts)
+
+		c.JSON(200, gin.H{
+			"posts": posts,
+		})
+	})
+
+	log.Default().Println("Starting the server :8000")
+	if err := r.Run("localhost:8000"); err != nil {
+		log.Fatalf("Error running the server: %s", err.Error())
+	}
 	// db.Migrator().DropTable(&Post{})
 	// db.Migrator().CreateTable(&Post{})
 
@@ -53,12 +67,4 @@ func main() {
 	// db.First(&firstPost).Update("Published", true)
 	// validate := validator.New()
 
-	// var posts []Post
-	// db.Find(&posts)
-
-	// for _, post := range posts {
-	// 	fmt.Printf("Title: %s\n", post.Title)
-	// 	fmt.Printf("Published: %t\n", post.Published)
-	// 	fmt.Printf("Author: %s\n", post.Author)
-	// }
 }
